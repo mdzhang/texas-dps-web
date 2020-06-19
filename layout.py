@@ -7,6 +7,15 @@ df = pd.read_csv("locations.csv")
 
 
 def create_layout(app):
+    """
+
+    TODOs:
+
+    - filter city from multi-select dropdown w/ typeahead
+    - visualize on TX where DPS location is
+    - update distance based on user provided location
+    - add label w/ last updated date
+    """
     return html.Div(
         [
             dash_table.DataTable(
