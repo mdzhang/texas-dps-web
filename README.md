@@ -36,7 +36,6 @@ python app.py
 
 Then open <localhost:8050>
 
-
 [algolia]: https://www.algolia.com/
 [mapbox]: https://www.mapbox.com/
 [dash]: https://plotly.com/dash/

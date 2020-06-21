@@ -5,6 +5,9 @@ TODOs:
 - nice styling
 - add label w/ last updated date
 - read df/CSV from S3
+- mapbox bounding box select of columns
+- histogram of next available date
+- distance slider selector
 """
 import os
 
