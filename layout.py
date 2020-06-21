@@ -1,9 +1,16 @@
+import dash_core_components as dcc
 import dash_html_components as html
 import dash_table
 import pandas as pd
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
+
+from utils import update_distances
 
 df = pd.read_csv("locations.csv")
+
+
+def load_df():
+    return pd.read_csv("locations.csv")
 
 
 def create_layout(app):
@@ -13,13 +20,13 @@ def create_layout(app):
 
     - filter city from multi-select dropdown w/ typeahead
     - visualize on TX where DPS location is
-    - update distance based on user provided location
     - add label w/ last updated date
     """
     return html.Div(
         [
+            dcc.Input(id="zip", type="number", placeholder="Enter your zip code",),
             dash_table.DataTable(
-                id="datatable-interactivity",
+                id="txdps-datatable",
                 columns=[
                     {"name": i, "id": i, "deletable": True, "selectable": True}
                     for i in df.columns
@@ -38,18 +45,29 @@ def create_layout(app):
                 page_current=0,
                 page_size=10,
             ),
-            html.Div(id="datatable-interactivity-container"),
+            html.Div(id="txdps-datatable-container"),
         ]
     )
 
 
 def register_callbacks(app):
     @app.callback(
-        Output("datatable-interactivity", "style_data_conditional"),
-        [Input("datatable-interactivity", "selected_columns")],
+        Output("txdps-datatable", "style_data_conditional"),
+        [Input("txdps-datatable", "selected_columns")],
     )
     def update_styles(selected_columns):
+        """Update table styling when user selects a column."""
         return [
             {"if": {"column_id": i}, "background_color": "#D2F3FF"}
             for i in selected_columns
         ]
+
+    @app.callback(
+        Output("txdps-datatable", "data"),
+        [Input("zip", "value")],
+        [State("txdps-datatable", "data")],
+    )
+    def recalculate_distances(zip_code: int, data):
+        """When user updates zip code, update listed distance to DPS location."""
+        df = update_distances(pd.DataFrame(data), zip_code)
+        return df.to_dict("records")
