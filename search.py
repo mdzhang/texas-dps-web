@@ -31,7 +31,7 @@ def create_index():
 
     NB: Don't run this over and over; it'll use up all your freemium operations
     """
-    df = pd.read_csv("locations.2.csv")
+    df = pd.read_csv("locations.csv")
     # this is the only thing that changes; in order to not drive up
     # the number of Algolia operations, which costs $$$,
     # just index on relatively static fields
