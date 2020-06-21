@@ -21,6 +21,7 @@ FILTER_OPERATORS = [
 
 
 def get_index():
+    """Authenticate with Algolia and get index object."""
     client = SearchClient.create(ALGOLIA_APP_ID, ALGOLIA_API_KEY)
     return client.init_index("tx_dps_locations")
 
@@ -49,44 +50,6 @@ def create_index():
     )
 
 
-def split_filter_part(filter_part: str):
-    """Extract filter field, operator, and value from Dash DataTable filter query.
-
-    Taken from https://dash.plotly.com/datatable/filtering
-    """
-    for operator_type in FILTER_OPERATORS:
-        for operator in operator_type:
-            if operator in filter_part:
-                name_part, value_part = filter_part.split(operator, 1)
-                start_idx = name_part.find("{") + 1
-                end_idx = name_part.rfind("}")
-                name = name_part[start_idx:end_idx]
-
-                value_part = value_part.strip()
-                v0 = value_part[0]
-                if v0 == value_part[-1] and v0 in ("'", '"', "`"):
-                    value = value_part[1:-1].replace("\\" + v0, v0)
-                else:
-                    value = value_part
-
-                # word operators need spaces after them in the filter string,
-                # but we don't want these later
-                return name, operator_type[0].strip(), value
-
-    return [None] * 3
-
-
-def get_algolia_query(filter_query: str):
-    """Convert dash DataTable query to Algolia query."""
-    filtering_expressions = filter_query.split(" && ")
-
-    filt_vals = []
-    for part in filtering_expressions:
-        col, op, val = split_filter_part(part)
-        filt_vals.append(val)
-    return " ".join(filt_vals)
-
-
 def filter_df(df: pd.DataFrame, query: str):
     """Filter a dataframe based on a dash data table filter query."""
     print(f"Filter query is: {query}")
@@ -104,8 +67,9 @@ def filter_df(df: pd.DataFrame, query: str):
 
 if __name__ == "__main__":
     cmd = sys.argv[1]
+
     if cmd == "recreate":
         create_index()
     elif cmd == "search":
-        df = pd.read_csv("locations.2.csv")
+        df = pd.read_csv("locations.csv")
         filter_df(df, "{SiteId} contains 5")

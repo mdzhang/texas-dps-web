@@ -101,7 +101,7 @@ def register_callbacks(app):
         Output("txdps-datatable", "data"),
         [Input("zip", "value"), Input("search", "value")],
     )
-    def recalculate_distances(zip_code: int, query: str):
+    def update_datatable(zip_code: int, query: str):
         """Update datatable data when filters are updated.
 
         Specifically,
