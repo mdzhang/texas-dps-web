@@ -1,11 +1,16 @@
+import os
+
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_table
 import pandas as pd
-from dash.dependencies import Input, Output
+import plotly.express as px
+from dash.dependencies import Input, Output, State
 
-from distance import update_distances
+from distance import is_valid_zip, update_distances
 from search import filter_df
+
+px.set_mapbox_access_token(os.getenv("MAPBOX_TOKEN"))
 
 
 def load_original_df():
@@ -29,7 +34,19 @@ def load_original_df():
     ]
 
 
+def get_map(df: pd.DataFrame, center=None):
+    return px.scatter_mapbox(
+        df,
+        lat="Latitude",
+        lon="Longitude",
+        zoom=5,
+        hover_data=["SiteName"],
+        center=None,
+    )
+
+
 def rename_col(colname: str):
+    """Pretty rename dataframe columns for user-displayed data table."""
     return {
         "SiteId": "Site ID",
         "SiteName": "Site Name",
@@ -42,17 +59,17 @@ def rename_col(colname: str):
 
 
 def create_layout(app):
-    """
+    """Create core Plotly Dash layout object.
 
     TODOs:
 
-    - filter city from multi-select dropdown w/ typeahead
-    - visualize on TX where DPS location is
+    - nice styling & header
     - add label w/ last updated date
     """
     dt_df = load_original_df()
     return html.Div(
         [
+            html.H1("Texas DPS Locations & Upcoming Appointments"),
             dcc.Input(id="search", type="text", placeholder="Enter a search string",),
             dcc.Input(id="zip", type="number", placeholder="Enter your zip code",),
             dash_table.DataTable(
@@ -81,6 +98,11 @@ def create_layout(app):
                 page_size=10,
             ),
             html.Div(id="txdps-datatable-container"),
+            dcc.Graph(
+                id="map",
+                style={"width": "100%", "display": "inline-block"},
+                figure=get_map(dt_df),
+            ),
         ]
     )
 
@@ -96,6 +118,21 @@ def register_callbacks(app):
             {"if": {"column_id": i}, "background_color": "#D2F3FF"}
             for i in selected_columns
         ]
+
+    @app.callback(
+        Output("map", "figure"),
+        [Input("zip", "value")],
+        [State("txdps-datatable", "data")],
+    )
+    def update_map_center(zip_code: int, data):
+        df = pd.DataFrame(data)
+        origin_latlong = is_valid_zip(zip_code)
+        if origin_latlong is None:
+            center = None
+        else:
+            center = {"lat": origin_latlong[0], "lon": origin_latlong[1]}
+
+        return get_map(df, center=center)
 
     @app.callback(
         Output("txdps-datatable", "data"),

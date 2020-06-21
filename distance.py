@@ -5,12 +5,15 @@ import typing as T
 import pandas as pd
 from uszipcode import SearchEngine
 
+
 def is_valid_zip(zip_code: int):
     """See if the given value is a valid US zip code."""
     search = SearchEngine(simple_zipcode=True)
     origin_zip = search.by_zipcode(zip_code)
 
-    return origin_zip.zipcode is not None
+    if origin_zip.zipcode is None:
+        return None
+    return (origin_zip.lat, origin_zip.lng)
 
 
 def haversine_distance(
@@ -42,14 +45,11 @@ def haversine_distance(
 
 def update_distances(df: pd.DataFrame, zip_code: int):
     """Update distance column based on provided ZIP code."""
-    search = SearchEngine(simple_zipcode=True)
-    origin_zip = search.by_zipcode(zip_code)
-
-    if origin_zip.zipcode is None:
+    print(f"Zip is {zip_code}")
+    origin_latlong = is_valid_zip(zip_code)
+    if origin_latlong is None:
         df["Distance"] = None
         return df
-
-    origin_latlong = (origin_zip.lat, origin_zip.lng)
 
     df["Distance"] = df[["Latitude", "Longitude"]].apply(
         lambda row: round(
