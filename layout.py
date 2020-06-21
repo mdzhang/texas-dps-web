@@ -1,13 +1,14 @@
 import os
+import typing as T
 
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_table
 import pandas as pd
 import plotly.express as px
-from dash.dependencies import Input, Output, State
+from dash.dependencies import Input, Output
 
-from distance import is_valid_zip, update_distances
+from distance import update_distances
 from search import filter_df
 
 px.set_mapbox_access_token(os.getenv("MAPBOX_TOKEN"))
@@ -85,7 +86,7 @@ def create_layout(app):
                         "selectable": False,
                     }
                     for i in dt_df.columns
-                    if i not in {"Latitude", "Longitude"}
+                    if i not in {"Latitude", "Longitude", "IsSelected"}
                 ],
                 data=dt_df.to_dict("records"),
                 editable=True,
@@ -123,20 +124,14 @@ def register_callbacks(app):
         ]
 
     @app.callback(
-        Output("map", "figure"),
-        [Input("txdps-datatable", "selected_rows")],
-        [State("txdps-datatable", "data")],
+        [Output("txdps-datatable", "data"), Output("map", "figure")],
+        [
+            Input("zip", "value"),
+            Input("search", "value"),
+            Input("txdps-datatable", "selected_rows"),
+        ],
     )
-    def recolor_map_dots(selected_rows, data):
-        df = pd.DataFrame(data)
-        df["IsSelected"] = df.index.isin(selected_rows)
-        return get_map(df)
-
-    @app.callback(
-        Output("txdps-datatable", "data"),
-        [Input("zip", "value"), Input("search", "value")],
-    )
-    def update_datatable(zip_code: int, query: str):
+    def update_datatable(zip_code: int, query: str, selected_rows: T.List[int]):
         """Update datatable data when filters are updated.
 
         Specifically,
@@ -147,4 +142,8 @@ def register_callbacks(app):
         # apply filters on Algolia index first
         df = filter_df(df, query)
         df = update_distances(df, zip_code)
-        return df.to_dict("records")
+
+        df["IsSelected"] = df.index.isin(selected_rows)
+        tx_map = get_map(df)
+
+        return [df.to_dict("records"), tx_map]
