@@ -4,7 +4,8 @@ import dash_table
 import pandas as pd
 from dash.dependencies import Input, Output
 
-from utils import filter_df, is_valid_zip, update_distances
+from distance import update_distances
+from search import filter_df
 
 
 def load_original_df():
@@ -52,6 +53,7 @@ def create_layout(app):
     dt_df = load_original_df()
     return html.Div(
         [
+            dcc.Input(id="search", type="text", placeholder="Enter a search string",),
             dcc.Input(id="zip", type="number", placeholder="Enter your zip code",),
             dash_table.DataTable(
                 id="txdps-datatable",
@@ -67,7 +69,6 @@ def create_layout(app):
                 ],
                 data=dt_df.to_dict("records"),
                 editable=True,
-                filter_action="native",
                 sort_action="native",
                 sort_mode="multi",
                 column_selectable=False,
@@ -98,9 +99,9 @@ def register_callbacks(app):
 
     @app.callback(
         Output("txdps-datatable", "data"),
-        [Input("zip", "value"), Input("txdps-datatable", "filter_query")],
+        [Input("zip", "value"), Input("search", "value")],
     )
-    def recalculate_distances(zip_code: int, filter_query: str):
+    def recalculate_distances(zip_code: int, query: str):
         """Update datatable data when filters are updated.
 
         Specifically,
@@ -108,9 +109,7 @@ def register_callbacks(app):
             when filter is given, filter data
         """
         df = load_original_df()
-        if filter_query is None and not is_valid_zip(zip_code):
-            df = load_original_df()
-        else:
-            df = filter_df(df, filter_query)
-            # df = update_distances(df, zip_code)
+        # apply filters on Algolia index first
+        df = filter_df(df, query)
+        df = update_distances(df, zip_code)
         return df.to_dict("records")
