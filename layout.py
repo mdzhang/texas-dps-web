@@ -34,14 +34,17 @@ def load_original_df():
     ]
 
 
-def get_map(df: pd.DataFrame, center=None):
+def get_map(df: pd.DataFrame):
+    if "IsSelected" not in df.columns:
+        df["IsSelected"] = False
+
     return px.scatter_mapbox(
         df,
         lat="Latitude",
         lon="Longitude",
         zoom=5,
         hover_data=["SiteName"],
-        center=None,
+        color="IsSelected",
     )
 
 
@@ -121,18 +124,13 @@ def register_callbacks(app):
 
     @app.callback(
         Output("map", "figure"),
-        [Input("zip", "value")],
+        [Input("txdps-datatable", "selected_rows")],
         [State("txdps-datatable", "data")],
     )
-    def update_map_center(zip_code: int, data):
+    def recolor_map_dots(selected_rows, data):
         df = pd.DataFrame(data)
-        origin_latlong = is_valid_zip(zip_code)
-        if origin_latlong is None:
-            center = None
-        else:
-            center = {"lat": origin_latlong[0], "lon": origin_latlong[1]}
-
-        return get_map(df, center=center)
+        df["IsSelected"] = df.index.isin(selected_rows)
+        return get_map(df)
 
     @app.callback(
         Output("txdps-datatable", "data"),
