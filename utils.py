@@ -1,5 +1,4 @@
 """Utility functions chunky enough to be separated from main layout module."""
-import logging
 import math
 import typing as T
 
@@ -93,10 +92,7 @@ def split_filter_part(filter_part: str):
                 if v0 == value_part[-1] and v0 in ("'", '"', "`"):
                     value = value_part[1:-1].replace("\\" + v0, v0)
                 else:
-                    try:
-                        value = float(value_part)
-                    except ValueError:
-                        value = value_part
+                    value = value_part
 
                 # word operators need spaces after them in the filter string,
                 # but we don't want these later
@@ -107,29 +103,35 @@ def split_filter_part(filter_part: str):
 
 def filter_df(df: pd.DataFrame, filter_query: str):
     """Filter a dataframe based on a dash data table filter query."""
-    logging.info(f"Filter query is: {filter_query}")
+    print(f"Filter query is: {filter_query}")
 
-    if filter_query is None:
+    if filter_query is None or not len(filter_query.strip()):
         return df
 
     filtering_expressions = filter_query.split(" && ")
+    mask_so_far = pd.Series([True] * len(df))
     for filter_part in filtering_expressions:
+        # TODO: filter_value type casts
         col_name, operator, filter_value = split_filter_part(filter_part)
+        print(f"Filter parts are: {col_name}, {operator}, {filter_value}")
+
         col = df[col_name]
         dtype = col.dtype
 
         if operator in ("eq", "ne", "lt", "le", "gt", "ge"):
             # these operators match pandas series operator method names
-            df = df.loc[getattr(col, operator)(filter_value)]
+            mask = getattr(col, operator)(filter_value)
         elif operator == "contains":
             if dtype != np.dtype("O"):
                 col = col.astype(str)
                 filter_value = str(filter_value)
 
-            df = df.loc[col.str.contains(filter_value)]
+            mask = col.str.contains(filter_value)
         elif operator == "datestartswith":
             # this is a simplification of the front-end filtering logic,
             # only works with complete fields in standard format
-            df = df.loc[col.str.startswith(filter_value)]
+            mask = col.str.startswith(filter_value)
 
-    return df
+        mask_so_far = mask_so_far & mask
+
+    return df[mask_so_far]
