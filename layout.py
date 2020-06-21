@@ -1,3 +1,11 @@
+"""Create core Dash layout.
+
+TODOs:
+
+- nice styling
+- add label w/ last updated date
+- read df/CSV from S3
+"""
 import os
 
 import dash_core_components as dcc
@@ -70,13 +78,7 @@ def rename_col(colname: str):
 
 
 def create_layout(app):
-    """Create core Plotly Dash layout object.
-
-    TODOs:
-
-    - nice styling
-    - add label w/ last updated date
-    """
+    """Create core Plotly Dash layout object."""
     dt_df = load_original_df()
     return html.Div(
         [
