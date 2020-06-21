@@ -7,7 +7,7 @@ import pandas as pd
 import plotly.express as px
 from dash.dependencies import Input, Output, State
 
-from distance import is_valid_zip, update_distances
+from distance import update_distances
 from search import filter_df
 
 px.set_mapbox_access_token(os.getenv("MAPBOX_TOKEN"))
@@ -32,6 +32,14 @@ def load_original_df():
             "Longitude",
         ]
     ]
+
+
+def update_df(query: str, zip_code: int):
+    df = load_original_df()
+    # apply filters on Algolia index first
+    df = filter_df(df, query)
+    df = update_distances(df, zip_code)
+    return df
 
 
 def get_map(df: pd.DataFrame):
@@ -66,7 +74,7 @@ def create_layout(app):
 
     TODOs:
 
-    - nice styling & header
+    - nice styling
     - add label w/ last updated date
     """
     dt_df = load_original_df()
@@ -124,12 +132,19 @@ def register_callbacks(app):
 
     @app.callback(
         Output("map", "figure"),
-        [Input("txdps-datatable", "selected_rows")],
+        [
+            Input("txdps-datatable", "selected_rows"),
+            Input("zip", "value"),
+            Input("search", "value"),
+        ],
         [State("txdps-datatable", "data")],
     )
-    def recolor_map_dots(selected_rows, data):
-        df = pd.DataFrame(data)
-        df["IsSelected"] = df.index.isin(selected_rows)
+    def recolor_map_dots(selected_rows, zip_code, query, old_data):
+        """Only show locations on map also in data table. Color by selected."""
+        df_old = pd.DataFrame(old_data)
+        selected_site_ids = df_old[df_old.index.isin(selected_rows)].SiteId.tolist()
+        df = update_df(zip_code=zip_code, query=query)
+        df["IsSelected"] = df.SiteId.isin(selected_site_ids)
         return get_map(df)
 
     @app.callback(
@@ -143,8 +158,5 @@ def register_callbacks(app):
             when user updates zip code, update listed distance to DPS location.
             when filter is given, filter data
         """
-        df = load_original_df()
-        # apply filters on Algolia index first
-        df = filter_df(df, query)
-        df = update_distances(df, zip_code)
+        df = update_df(zip_code=zip_code, query=query)
         return df.to_dict("records")

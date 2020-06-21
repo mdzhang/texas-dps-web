@@ -45,7 +45,6 @@ def haversine_distance(
 
 def update_distances(df: pd.DataFrame, zip_code: int):
     """Update distance column based on provided ZIP code."""
-    print(f"Zip is {zip_code}")
     origin_latlong = is_valid_zip(zip_code)
     if origin_latlong is None:
         df["Distance"] = None
