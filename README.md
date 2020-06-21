@@ -2,15 +2,15 @@
 
 Web front end to browse DPS appointment data.
 
-Uses [Plotly Dash](https://plotly.com/dash/) and data fetchable using the [TX DPS CLI](https://github.com/mdzhang/texas-dps).
+Uses [Plotly Dash][dash], data fetchable using the [TX DPS CLI](https://github.com/mdzhang/texas-dps), and [Algolia][algolia] for improved search.
 
 ## Contributing
 
 ### Requirements
 
 - Python 3.x
-- An [Algolia account](https://www.algolia.com/)
-- A [Mapbox account](https://www.mapbox.com/)
+- An [Algolia account][algolia]
+- A [Mapbox account][mapbox]
 
 ### Setup
 
@@ -35,3 +35,8 @@ python app.py
 ```
 
 Then open <localhost:8050>
+
+
+[algolia]: https://www.algolia.com/
+[mapbox]: https://www.mapbox.com/
+[dash]: https://plotly.com/dash/
