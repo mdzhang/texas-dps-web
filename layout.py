@@ -10,19 +10,26 @@ TODOs:
 - distance slider selector
 """
 import os
+import typing as T
 
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_table
+import numpy as np
 import pandas as pd
 import plotly.express as px
 from dash.dependencies import Input, Output, State
 
-from distance import update_distances
+from distance import is_valid_zip, update_distances
 from search import filter_df
 
 px.set_mapbox_access_token(os.getenv("MAPBOX_TOKEN"))
+
+
+def get_slider_marks():
+    vals = np.linspace(0, 800, 5)
+    return {int(v): {"label": str(int(v))} for v in vals}
 
 
 def load_original_df():
@@ -48,11 +55,17 @@ def load_original_df():
     ]
 
 
-def update_df(query: str, zip_code: int):
+def update_df(query: str, zip_code: int, distance_range: T.List[int]):
     df = load_original_df()
     # apply filters on Algolia index first
     df = filter_df(df, query)
     df = update_distances(df, zip_code)
+
+    if is_valid_zip(zip_code):
+        df = df[
+            (df["Distance"] >= distance_range[0])
+            & (df["Distance"] <= distance_range[1])
+        ]
     return df
 
 
@@ -96,7 +109,7 @@ def get_filter_and_search_row():
                         ),
                     ]
                 ),
-                width=4,
+                width=3,
             ),
             dbc.Col(
                 dbc.FormGroup(
@@ -109,7 +122,7 @@ def get_filter_and_search_row():
                         ),
                     ]
                 ),
-                width=4,
+                width=3,
             ),
             dbc.Col(
                 dbc.FormGroup(
@@ -117,19 +130,15 @@ def get_filter_and_search_row():
                         dcc.RangeSlider(
                             id="distance-range",
                             min=0,
-                            max=500,
-                            value=[0, 50],
+                            max=800,
+                            value=[0, 800],
                             allowCross=False,
-                            marks={
-                                0: {"label": "0"},
-                                250: {"label": "250"},
-                                500: {"label": "500"},
-                            },
+                            marks=get_slider_marks(),
                         ),
                         dbc.FormText("Select a distance range (miles)"),
                     ]
                 ),
-                width=4,
+                width=6,
             ),
         ],
         style={"margin-top": "1rem"},
@@ -171,10 +180,8 @@ def create_layout(app):
             ),
             dbc.Container(
                 [
-                    dbc.Row(
-                        [get_filter_and_search_row(), dbc.Row(get_datatable(dt_df))],
-                        key="dps-data",
-                    ),
+                    get_filter_and_search_row(),
+                    dbc.Row(get_datatable(dt_df), key="dps-data"),
                     dbc.Row(
                         dcc.Graph(
                             id="map",
@@ -208,22 +215,27 @@ def register_callbacks(app):
             Input("txdps-datatable", "selected_rows"),
             Input("zip", "value"),
             Input("search", "value"),
+            Input("distance-range", "value"),
         ],
         [State("txdps-datatable", "data")],
     )
-    def recolor_map_dots(selected_rows, zip_code, query, old_data):
+    def recolor_map_dots(selected_rows, zip_code, query, distance_range, old_data):
         """Only show locations on map also in data table. Color by selected."""
         df_old = pd.DataFrame(old_data)
         selected_site_ids = df_old[df_old.index.isin(selected_rows)].SiteId.tolist()
-        df = update_df(zip_code=zip_code, query=query)
+        df = update_df(zip_code=zip_code, query=query, distance_range=distance_range)
         df["IsSelected"] = df.SiteId.isin(selected_site_ids)
         return get_map(df)
 
     @app.callback(
         Output("txdps-datatable", "data"),
-        [Input("zip", "value"), Input("search", "value")],
+        [
+            Input("zip", "value"),
+            Input("search", "value"),
+            Input("distance-range", "value"),
+        ],
     )
-    def update_datatable(zip_code: int, query: str):
+    def update_datatable(zip_code: int, query: str, distance_range: T.List[int]):
         """Update datatable data when filters are updated.
 
         Specifically,
@@ -231,6 +243,23 @@ def register_callbacks(app):
             when filter is given, filter data
         """
         df = load_original_df()
-        df = update_df(zip_code=zip_code, query=query)
+        df = update_df(zip_code=zip_code, query=query, distance_range=distance_range)
 
         return df.to_dict("records")
+
+    @app.callback(
+        Output("distance-range", "marks"), [Input("distance-range", "value")],
+    )
+    def update_slider_markers(distance_range: T.List[int]):
+        """Update datatable data when filters are updated.
+
+        Specifically,
+            when user updates zip code, update listed distance to DPS location.
+            when filter is given, filter data
+        """
+        marks = get_slider_marks()
+        low, high = distance_range
+        marks[low] = str(low)
+        marks[high] = str(high)
+
+        return marks
