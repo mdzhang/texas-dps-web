@@ -31,6 +31,7 @@ def load_original_df():
     )
     df["NextAvailableDate"] = pd.to_datetime(df["NextAvailableDate"]).dt.date
     df["Distance"] = None
+    df["IsSelected"] = False
     return df[
         [
             "Distance",
@@ -42,6 +43,7 @@ def load_original_df():
             "ZipCode",
             "Latitude",
             "Longitude",
+            "IsSelected",
         ]
     ]
 
@@ -55,9 +57,6 @@ def update_df(query: str, zip_code: int):
 
 
 def get_map(df: pd.DataFrame):
-    if "IsSelected" not in df.columns:
-        df["IsSelected"] = False
-
     return px.scatter_mapbox(
         df,
         lat="Latitude",
@@ -81,6 +80,85 @@ def rename_col(colname: str):
     }[colname]
 
 
+def get_filter_and_search_row():
+    return dbc.Row(
+        [
+            dbc.Col(
+                dbc.FormGroup(
+                    [
+                        dbc.Input(
+                            id="search",
+                            type="text",
+                            placeholder="Enter a search string",
+                        ),
+                        dbc.FormText(
+                            "Search on cities, DPS location names, zip codes, etc."
+                        ),
+                    ]
+                ),
+                width=4,
+            ),
+            dbc.Col(
+                dbc.FormGroup(
+                    [
+                        dbc.Input(
+                            id="zip", type="number", placeholder="Enter your zip code",
+                        ),
+                        dbc.FormText(
+                            "Enter your zip code to estimate distance to DPS locations"
+                        ),
+                    ]
+                ),
+                width=4,
+            ),
+            dbc.Col(
+                dbc.FormGroup(
+                    [
+                        dcc.RangeSlider(
+                            id="distance-range",
+                            min=0,
+                            max=500,
+                            value=[0, 50],
+                            allowCross=False,
+                            marks={
+                                0: {"label": "0"},
+                                250: {"label": "250"},
+                                500: {"label": "500"},
+                            },
+                        ),
+                        dbc.FormText("Select a distance range (miles)"),
+                    ]
+                ),
+                width=4,
+            ),
+        ],
+        style={"margin-top": "1rem"},
+    )
+
+
+def get_datatable(dt_df):
+    return dash_table.DataTable(
+        id="txdps-datatable",
+        columns=[
+            {"name": rename_col(i), "id": i, "deletable": True, "selectable": False,}
+            for i in dt_df.columns
+            if i not in {"Latitude", "Longitude", "IsSelected"}
+        ],
+        data=dt_df.to_dict("records"),
+        editable=True,
+        sort_action="native",
+        sort_mode="multi",
+        column_selectable=False,
+        row_selectable="multi",
+        row_deletable=False,
+        selected_columns=[],
+        selected_rows=[],
+        page_action="native",
+        page_current=0,
+        page_size=10,
+    )
+
+
 def create_layout(app):
     """Create core Plotly Dash layout object."""
     dt_df = load_original_df()
@@ -92,92 +170,21 @@ def create_layout(app):
                 color="primary",
             ),
             dbc.Container(
-                dbc.Row(
-                    [
-                        dbc.Col(
-                            dbc.FormGroup(
-                                [
-                                    dbc.Input(
-                                        id="search",
-                                        type="text",
-                                        placeholder="Enter a search string",
-                                    ),
-                                    dbc.FormText(
-                                        "Search on cities, DPS location names, zip codes, etc."
-                                    ),
-                                ]
-                            ),
-                            width=2,
+                [
+                    dbc.Row(
+                        [get_filter_and_search_row(), dbc.Row(get_datatable(dt_df))],
+                        key="dps-data",
+                    ),
+                    dbc.Row(
+                        dcc.Graph(
+                            id="map",
+                            style={"width": "100%", "height": "100%"},
+                            figure=get_map(dt_df),
                         ),
-                        dbc.Col(
-                            dbc.FormGroup(
-                                [
-                                    dbc.Input(
-                                        id="zip",
-                                        type="number",
-                                        placeholder="Enter your zip code",
-                                    ),
-                                    dbc.FormText(
-                                        "Enter your zip code to estimate distance to DPS locations"
-                                    ),
-                                ]
-                            ),
-                            width=2,
-                        ),
-                        dbc.Col(
-                            dbc.FormGroup(
-                                [
-                                    dcc.RangeSlider(
-                                        id="distance-range",
-                                        min=0,
-                                        max=500,
-                                        value=[0, 50],
-                                        allowCross=False,
-                                        marks={
-                                            0: {"label": "0"},
-                                            250: {"label": "250"},
-                                            500: {"label": "500"},
-                                        },
-                                    ),
-                                    dbc.FormText("Select a distance range (miles)"),
-                                ]
-                            ),
-                            width=3,
-                        ),
-                    ]
-                ),
-                style={"margin-top": "1rem"},
-            ),
-            dash_table.DataTable(
-                id="txdps-datatable",
-                columns=[
-                    {
-                        "name": rename_col(i),
-                        "id": i,
-                        "deletable": True,
-                        "selectable": False,
-                    }
-                    for i in dt_df.columns
-                    if i not in {"Latitude", "Longitude"}
+                        key="graph",
+                    ),
                 ],
-                data=dt_df.to_dict("records"),
-                editable=True,
-                sort_action="native",
-                sort_mode="multi",
-                column_selectable=False,
-                row_selectable="multi",
-                row_deletable=False,
-                selected_columns=[],
-                selected_rows=[],
-                page_action="native",
-                page_current=0,
-                page_size=10,
-            ),
-            html.Div(id="txdps-datatable-container"),
-            dcc.Graph(
-                id="map",
-                style={"width": "100%", "display": "inline-block"},
-                figure=get_map(dt_df),
+                style={"max-width": "90%"},
             ),
         ],
     )
@@ -223,5 +230,7 @@ def register_callbacks(app):
             when user updates zip code, update listed distance to DPS location.
             when filter is given, filter data
         """
+        df = load_original_df()
         df = update_df(zip_code=zip_code, query=query)
+
         return df.to_dict("records")
