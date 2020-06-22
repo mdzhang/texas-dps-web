@@ -4,7 +4,6 @@ TODOs:
 
 - apply theme to datatable
 - mapbox bounding box select of columns
-- histogram of next available date
 """
 import os
 import typing as T
@@ -77,6 +76,16 @@ def update_df(query: str, zip_code: int, distance_range: T.List[int]):
     return df
 
 
+def update_old_df_from_selected(
+    old_data, selected_rows, zip_code, query, distance_range
+):
+    df_old = pd.DataFrame(old_data)
+    selected_site_ids = df_old[df_old.index.isin(selected_rows)].SiteId.tolist()
+    df = update_df(zip_code=zip_code, query=query, distance_range=distance_range)
+    df["IsSelected"] = df.SiteId.isin(selected_site_ids)
+    return df
+
+
 def get_map(df: pd.DataFrame):
     return px.scatter_mapbox(
         df,
@@ -86,6 +95,10 @@ def get_map(df: pd.DataFrame):
         hover_data=["SiteName"],
         color="IsSelected",
     )
+
+
+def get_hist(df: pd.DataFrame):
+    return px.histogram(df, x="NextAvailableDate", color="IsSelected")
 
 
 def rename_col(colname: str):
@@ -157,7 +170,7 @@ def get_datatable(dt_df):
     return dash_table.DataTable(
         id="txdps-datatable",
         columns=[
-            {"name": rename_col(i), "id": i, "deletable": True, "selectable": False,}
+            {"name": rename_col(i), "id": i, "deletable": True, "selectable": False}
             for i in dt_df.columns
             if i not in {"Latitude", "Longitude", "IsSelected"}
         ],
@@ -198,11 +211,18 @@ def create_layout(app):
                     get_filter_and_search_row(),
                     dbc.Row(get_datatable(dt_df), key="dps-data"),
                     dbc.Row(
-                        dcc.Graph(
-                            id="map",
-                            style={"width": "100%", "height": "100%"},
-                            figure=get_map(dt_df),
-                        ),
+                        [
+                            dcc.Graph(
+                                id="map",
+                                style={"width": "50%", "height": "100%"},
+                                figure=get_map(dt_df),
+                            ),
+                            dcc.Graph(
+                                id="hist",
+                                style={"width": "50%", "height": "100%"},
+                                figure=get_hist(dt_df),
+                            ),
+                        ],
                         key="graph",
                     ),
                 ],
@@ -217,7 +237,7 @@ def register_callbacks(app):
         Output("txdps-datatable", "style_data_conditional"),
         [Input("txdps-datatable", "selected_columns")],
     )
-    def update_styles(selected_columns):
+    def update_table_styles(selected_columns):
         """Update table styling when user selects a column."""
         return [
             {"if": {"column_id": i}, "background_color": "#D2F3FF"}
@@ -236,11 +256,27 @@ def register_callbacks(app):
     )
     def recolor_map_dots(selected_rows, zip_code, query, distance_range, old_data):
         """Only show locations on map also in data table. Color by selected."""
-        df_old = pd.DataFrame(old_data)
-        selected_site_ids = df_old[df_old.index.isin(selected_rows)].SiteId.tolist()
-        df = update_df(zip_code=zip_code, query=query, distance_range=distance_range)
-        df["IsSelected"] = df.SiteId.isin(selected_site_ids)
+        df = update_old_df_from_selected(
+            old_data, selected_rows, zip_code, query, distance_range
+        )
         return get_map(df)
+
+    @app.callback(
+        Output("hist", "figure"),
+        [
+            Input("txdps-datatable", "selected_rows"),
+            Input("zip", "value"),
+            Input("search", "value"),
+            Input("distance-range", "value"),
+        ],
+        [State("txdps-datatable", "data")],
+    )
+    def redraw_histogram(selected_rows, zip_code, query, distance_range, old_data):
+        """Only count locations in historgram also in data table. Color by selected."""
+        df = update_old_df_from_selected(
+            old_data, selected_rows, zip_code, query, distance_range
+        )
+        return get_hist(df)
 
     @app.callback(
         Output("txdps-datatable", "data"),
@@ -255,7 +291,8 @@ def register_callbacks(app):
 
         Specifically,
             when user updates zip code, update listed distance to DPS location.
-            when filter is given, filter data
+            when text search filter is given, fuzzy filter data
+            when date range specified, limit distance if zip also given
         """
         df = load_original_df()
         df = update_df(zip_code=zip_code, query=query, distance_range=distance_range)
@@ -266,12 +303,7 @@ def register_callbacks(app):
         Output("distance-range", "marks"), [Input("distance-range", "value")],
     )
     def update_slider_markers(distance_range: T.List[int]):
-        """Update datatable data when filters are updated.
-
-        Specifically,
-            when user updates zip code, update listed distance to DPS location.
-            when filter is given, filter data
-        """
+        """Update markers on distance range slider to include selected values."""
         marks = get_slider_marks()
         low, high = distance_range
         marks[low] = str(low)
