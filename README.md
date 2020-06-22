@@ -11,6 +11,7 @@ Uses [Plotly Dash][dash], data fetchable using the [TX DPS CLI](https://github.c
 - Python 3.x
 - An [Algolia account][algolia]
 - A [Mapbox account][mapbox]
+- An [AWS account][aws]
 
 ### Setup
 
@@ -28,6 +29,18 @@ export ALGOLIA_API_KEY=xxx
 export ALGOLIA_APP_ID=xxx
 ```
 
+#### Initial search index configuration
+
+```sh
+python search.py
+```
+
+### AWS access
+
+```sh
+export S3_LOCATION=s3://bucket/path
+```
+
 ### Run
 
 ```sh
@@ -39,3 +52,4 @@ Then open <localhost:8050>
 [algolia]: https://www.algolia.com/
 [mapbox]: https://www.mapbox.com/
 [dash]: https://plotly.com/dash/
+[aws]: https://aws.amazon.com/resources/create-account/

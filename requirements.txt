@@ -2,6 +2,8 @@ aiohttp>=2.0,<4.0
 algoliasearch>=2.0,<3.0
 async_timeout>=2.0,<4.0
 asyncio>=3.4,<4.0
-dash==1.13.2
-uszipcode
+boto3
 dash-bootstrap-components
+dash==1.13.2
+s3fs
+uszipcode

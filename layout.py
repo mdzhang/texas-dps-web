@@ -3,14 +3,14 @@
 TODOs:
 
 - apply theme to datatable
-- add label w/ last updated date
-- read df/CSV from S3
 - mapbox bounding box select of columns
 - histogram of next available date
 """
 import os
 import typing as T
+from urllib.parse import urlparse
 
+import boto3
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
@@ -25,16 +25,25 @@ from search import filter_df
 
 px.set_mapbox_access_token(os.getenv("MAPBOX_TOKEN"))
 
+S3_URI = os.environ["S3_LOCATION"]
+
 
 def get_slider_marks():
     vals = np.linspace(0, 800, 5)
     return {int(v): {"label": str(int(v))} for v in vals}
 
 
+def get_data_last_updated():
+    s3 = boto3.client("s3")
+    parts = urlparse(S3_URI)
+    bucket = parts.netloc
+    key = parts.path[1:]
+    metadata = s3.head_object(Bucket=bucket, Key=key)
+    return metadata["LastModified"]
+
+
 def load_original_df():
-    df = pd.read_csv("locations.csv").rename(
-        {"Id": "SiteId", "Name": "SiteName"}, axis=1
-    )
+    df = pd.read_csv(S3_URI).rename({"Id": "SiteId", "Name": "SiteName"}, axis=1)
     df["NextAvailableDate"] = pd.to_datetime(df["NextAvailableDate"]).dt.date
     df["Distance"] = None
     df["IsSelected"] = False
@@ -170,12 +179,19 @@ def get_datatable(dt_df):
 def create_layout(app):
     """Create core Plotly Dash layout object."""
     dt_df = load_original_df()
+    last_updated = get_data_last_updated()
     return html.Div(
         children=[
             dbc.NavbarSimple(
                 brand="Texas DPS Locations & Upcoming Appointments",
                 dark=True,
                 color="primary",
+                children=[
+                    dbc.NavItem(
+                        f"Data last updated: {last_updated.strftime('%-d %b %Y')}",
+                        className="text-info",
+                    ),
+                ],
             ),
             dbc.Container(
                 [
