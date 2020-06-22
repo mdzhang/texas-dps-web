@@ -2,12 +2,11 @@
 
 TODOs:
 
-- nice styling
+- apply theme to datatable
 - add label w/ last updated date
 - read df/CSV from S3
 - mapbox bounding box select of columns
 - histogram of next available date
-- distance slider selector
 """
 import os
 import typing as T
