@@ -4,3 +4,4 @@ async_timeout>=2.0,<4.0
 asyncio>=3.4,<4.0
 dash==1.13.2
 uszipcode
+dash-bootstrap-components

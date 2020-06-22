@@ -11,6 +11,7 @@ TODOs:
 """
 import os
 
+import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_table
@@ -84,10 +85,69 @@ def create_layout(app):
     """Create core Plotly Dash layout object."""
     dt_df = load_original_df()
     return html.Div(
-        [
-            html.H1("Texas DPS Locations & Upcoming Appointments"),
-            dcc.Input(id="search", type="text", placeholder="Enter a search string",),
-            dcc.Input(id="zip", type="number", placeholder="Enter your zip code",),
+        children=[
+            dbc.NavbarSimple(
+                brand="Texas DPS Locations & Upcoming Appointments",
+                dark=True,
+                color="primary",
+            ),
+            dbc.Container(
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            dbc.FormGroup(
+                                [
+                                    dbc.Input(
+                                        id="search",
+                                        type="text",
+                                        placeholder="Enter a search string",
+                                    ),
+                                    dbc.FormText(
+                                        "Search on cities, DPS location names, zip codes, etc."
+                                    ),
+                                ]
+                            ),
+                            width=2,
+                        ),
+                        dbc.Col(
+                            dbc.FormGroup(
+                                [
+                                    dbc.Input(
+                                        id="zip",
+                                        type="number",
+                                        placeholder="Enter your zip code",
+                                    ),
+                                    dbc.FormText(
+                                        "Enter your zip code to estimate distance to DPS locations"
+                                    ),
+                                ]
+                            ),
+                            width=2,
+                        ),
+                        dbc.Col(
+                            dbc.FormGroup(
+                                [
+                                    dcc.RangeSlider(
+                                        id="distance-range",
+                                        min=0,
+                                        max=500,
+                                        value=[0, 50],
+                                        allowCross=False,
+                                        marks={
+                                            0: {"label": "0"},
+                                            250: {"label": "250"},
+                                            500: {"label": "500"},
+                                        },
+                                    ),
+                                    dbc.FormText("Select a distance range (miles)"),
+                                ]
+                            ),
+                            width=3,
+                        ),
+                    ]
+                ),
+                style={"margin-top": "1rem"},
+            ),
             dash_table.DataTable(
                 id="txdps-datatable",
                 columns=[
@@ -119,7 +179,7 @@ def create_layout(app):
                 style={"width": "100%", "display": "inline-block"},
                 figure=get_map(dt_df),
             ),
-        ]
+        ],
     )
 
 
