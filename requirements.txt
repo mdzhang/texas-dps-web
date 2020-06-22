@@ -5,5 +5,8 @@ asyncio>=3.4,<4.0
 boto3
 dash-bootstrap-components
 dash==1.13.2
+numpy
+pandas
 s3fs
+sentry-sdk[flask]==0.15.1
 uszipcode

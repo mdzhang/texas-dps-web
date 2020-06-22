@@ -1,0 +1,52 @@
+version: 2.1
+
+orbs:
+  python: circleci/python@0.3.0
+  heroku: circleci/heroku@0.0.10
+
+jobs:
+  build-and-lint:
+    executor: python/default
+    docker:
+      - image: circleci/python:3.7.7
+    steps:
+      - checkout
+      - python/load-cache
+      - python/install-deps
+      - python/save-cache
+      - run:
+          command: |
+            #!/bin/bash -eo pipefail
+            pre-commit run -a
+          name: Run pre-commit
+
+  report-release:
+    docker:
+      - image: circleci/node:4.8.2
+    steps:
+      - checkout
+      - run: |
+          curl -sL https://sentry.io/get-cli/ | bash
+          export SENTRY_RELEASE=$(sentry-cli releases propose-version)
+          sentry-cli releases new -p $SENTRY_PROJECT $SENTRY_RELEASE
+          sentry-cli releases set-commits --auto $SENTRY_RELEASE
+          sentry-cli releases finalize $SENTRY_RELEASE
+
+workflows:
+  main:
+    jobs:
+      - build-and-lint
+      - heroku/deploy-via-git:
+          requires:
+            - build-and-lint
+          filters:
+            branches:
+              only:
+                - master
+      - report-release:
+          requires:
+            - heroku/deploy-via-git
+          filters:
+            branches:
+              only:
+                - master
