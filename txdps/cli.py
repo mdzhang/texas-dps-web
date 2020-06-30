@@ -151,9 +151,10 @@ def get_parser():
         "site_id",
         "slot_id",
     )
+    pull_args = ("use_cache", "cache_file", "cities", "zip_code", "max_dist", "n")
 
     cmd_args = {
-        "schedule": {"help": "Like notify, but run on a schedule", "args": notify_args},
+        "schedule": {"help": "Like pull, but run on a schedule", "args": pull_args},
         "cancel": {"help": "Cancel a DPS appointment booking", "args": ("booking_id",)},
         "hold": {"help": "Hold a DPS appointment slot", "args": hold_args},
         "scan_and_autohold": {
@@ -176,7 +177,7 @@ def get_parser():
                 "Finds the next available date for a new Driver License "
                 "appointment in Texas DPS locations."
             ),
-            "args": ("use_cache", "cache_file", "cities", "zip_code", "max_dist", "n"),
+            "args": pull_args,
         },
         "pull_and_upload": {
             "help": (
