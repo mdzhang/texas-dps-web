@@ -2,9 +2,7 @@
 
 Web front end to browse DPS appointment data.
 
-Uses [Plotly Dash][dash], data fetchable using the [TX DPS CLI](https://github.com/mdzhang/texas-dps), and [Algolia][algolia] for improved search.
-
-For more CLI docs, see [here](./docs/cli.md).
+Uses [Plotly Dash][dash] and [Algolia][algolia] for improved search. Provides [CLI](./docs/cli.md) for fetching source data.
 
 ## Contributing
 
@@ -22,7 +20,7 @@ For more CLI docs, see [here](./docs/cli.md).
 - [AWS CLI](https://aws.amazon.com/cli/)
 - [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli)
 - [Sentry CLI](https://github.com/getsentry/sentry-cli)
-- [CircleCi CLI](https://circleci.com/docs/2.0/local-cli/)
+- [CircleCI CLI](https://circleci.com/docs/2.0/local-cli/)
 
 ### Setup
 
