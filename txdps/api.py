@@ -62,20 +62,11 @@ async def get_site_info() -> T.Tuple[T.List[dict], int]:
     async with aiohttp.ClientSession() as session:
         async with session.get(f"{BASE_API}/SiteData", headers=HTTP_HEADERS) as res:
             res_body = await res.json(content_type="text/plain")
-            cities = res_body["Cities"]
-            services = res_body["ServiceTypes"]
-
-            new_dl_svc = next(
-                (s for s in services if s["Name"] == DEFAULT_SERVICE_NAME), None
-            )
-
-            service_id = new_dl_svc["SubTypeId"]
-
-            return cities, service_id
+            return res_body["Cities"]
 
 
 async def get_city_info(
-    session, city: str, service_id: int, zip_code: int = None
+    session, city: str, service_id: int = DEFAULT_SERVICE_ID, zip_code: int = None
 ) -> pd.DataFrame:
     """Get DPS locations with next available date for a service nearest to a specific city.
 
@@ -122,7 +113,7 @@ async def get_city_info(
         ]
 
         if zip_code:
-            df = update_distances(zip_code)
+            df = update_distances(df, zip_code)
             cols = cols + ["Distance"]
 
         df = df[cols]
@@ -130,7 +121,9 @@ async def get_city_info(
         return df
 
 
-async def get_appointment_info(session, site_name: str, site_id: int, service_id: int):
+async def get_appointment_info(
+    session, site_name: str, site_id: int, service_id: int = DEFAULT_SERVICE_ID
+):
     """Get specific info on the next available appointment for the given site."""
     logging.info(f"Fetching latest appointment data for location: '{site_name}'...")
     payload = {
@@ -174,7 +167,9 @@ async def get_all_cities_info(
         )
 
 
-async def get_all_appts_info(df: pd.DataFrame, service_id: int) -> T.List[pd.DataFrame]:
+async def get_all_appts_info(
+    df: pd.DataFrame, service_id: int = DEFAULT_SERVICE_ID
+) -> T.List[pd.DataFrame]:
     """Fetch per-city info concurrently."""
     async with aiohttp.ClientSession() as session:
         return await asyncio.gather(

@@ -26,12 +26,10 @@ def _pretty_print(df: pd.DataFrame, n: int):
 def _refresh_df(cities: T.List[str] = None, zip_code: int = None) -> pd.DataFrame:
     """Pull DPS and appointment info from the API and return in dataframe."""
     if not cities:
-        cities, service_id = asyncio.run(get_site_info())
+        cities = asyncio.run(get_site_info())
 
     # load most of the data we need here
-    all_dfs = asyncio.run(
-        get_all_cities_info(cities=cities, service_id=service_id, zip_code=zip_code)
-    )
+    all_dfs = asyncio.run(get_all_cities_info(cities=cities, zip_code=zip_code))
     # since looking up all locations nearest to a specific city can return
     # the same location for 2 different cities, deduplicate on DPS location id
     return (
