@@ -44,7 +44,7 @@ export SENTRY_AUTH_TOKEN=
 #### First time search index setup
 
 ```sh
-python search.py
+python txdps/search.py
 ```
 
 #### First time Heroku setup
@@ -82,10 +82,10 @@ HEROKU_APP_NAME
 ### Run
 
 ```sh
-python app.py
+FLASK_APP=txdps/app flask run
 ```
 
-Then open <localhost:8050|localhost:8050>
+Then open localhost:5000
 
 [algolia]: https://www.algolia.com/
 [mapbox]: https://www.mapbox.com/

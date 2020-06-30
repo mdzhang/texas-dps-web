@@ -5,7 +5,7 @@ import dash_bootstrap_components as dbc
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
 
-from layout import create_layout, register_callbacks
+from txdps.layout import create_layout, register_callbacks
 
 sentry_sdk.init(dsn=os.environ["SENTRY_DSN"], integrations=[FlaskIntegration()])
 
