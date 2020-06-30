@@ -185,8 +185,8 @@ def get_parser():
             ),
             "args": ("uri",),
         },
-        "create_index": {"help": "Setup search index in Algolia."},
-        "args": ("uri",),
+        "create_index": {"help": "Setup search index in Algolia.", "args": ("uri",)},
+        "run_web": {"help": "Run web frontend.", "args": ()},
     }
 
     for cmd, spec in cmd_args.items():

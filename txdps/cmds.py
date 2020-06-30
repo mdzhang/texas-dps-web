@@ -12,7 +12,8 @@ from txdps.alerts import notify_email, notify_phone
 from txdps.api import cancel as _cancel
 from txdps.api import get_all_appts_info, get_all_cities_info, get_site_info
 from txdps.api import hold as _hold
-from txdps.search import create_index  # noqa
+from txdps.app import run as run_web
+from txdps.search import create_index
 from uszipcode import SearchEngine
 
 
@@ -23,7 +24,7 @@ def _pretty_print(df: pd.DataFrame, n: int):
     return s
 
 
-def refresh_df(cities: T.List[str] = None, zip_code: int = None) -> pd.DataFrame:
+def _refresh_df(cities: T.List[str] = None, zip_code: int = None) -> pd.DataFrame:
     """Pull DPS and appointment info from the API and return in dataframe."""
     if not cities:
         cities, service_id = asyncio.run(get_site_info())
@@ -56,7 +57,7 @@ def refresh_df(cities: T.List[str] = None, zip_code: int = None) -> pd.DataFrame
 
 def pull_and_upload(uri: str):
     """Pull latest DPS appointment data and reupload to S3."""
-    df = refresh_df()
+    df = _refresh_df()
     df.to_csv(uri)
     logging.info(f"Updated file at URI with {len(df)} rows: {uri}")
 
@@ -75,7 +76,7 @@ def pull(
         df = pd.read_csv(cache_file)
         df["NextAvailableDate"] = pd.to_datetime(df["NextAvailableDate"])
     else:
-        df = refresh_df(cities=cities, zip_code=zip_code)
+        df = _refresh_df(cities=cities, zip_code=zip_code)
         df.to_csv(cache_file)
 
     if max_dist > 0:
@@ -137,7 +138,7 @@ def _find_matching_slots(
     email_address: str,
     **kwargs,
 ):
-    df = refresh_df(cities=cities, zip_code=zip_code)
+    df = _refresh_df(cities=cities, zip_code=zip_code)
     df["NextAvailableDate"] = pd.to_datetime(df["NextAvailableDate"])
     df = df[
         (df.NextAvailableDate > min_date)
@@ -273,3 +274,16 @@ def schedule(**kwargs):
     notify_bound = functools.partial(notify, **kwargs)
     sched.scheduled_job("interval", minutes=15)(notify_bound)
     sched.start()
+
+
+__all__ = [
+    "cancel",
+    "create_index",
+    "hold",
+    "notify",
+    "pull",
+    "pull_and_upload",
+    "run_web",
+    "scan_and_autohold",
+    "schedule",
+]
