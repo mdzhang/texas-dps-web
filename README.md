@@ -4,6 +4,8 @@ Web front end to browse DPS appointment data.
 
 Uses [Plotly Dash][dash], data fetchable using the [TX DPS CLI](https://github.com/mdzhang/texas-dps), and [Algolia][algolia] for improved search.
 
+For more CLI docs, see [here](./docs/cli.md).
+
 ## Contributing
 
 ### Requirements
@@ -12,9 +14,11 @@ Uses [Plotly Dash][dash], data fetchable using the [TX DPS CLI](https://github.c
 - An [Algolia account][algolia]
 - A [Mapbox account][mapbox]
 - An [AWS account][aws]
+- A [Sentry project](https://docs.sentry.io)
 
 ### Optional
 
+- [httpie](https://httpie.org) and [jq](https://stedolan.github.io/jq/) for [Makefile](./Makefile) commands
 - [AWS CLI](https://aws.amazon.com/cli/)
 - [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli)
 - [Sentry CLI](https://github.com/getsentry/sentry-cli)
@@ -28,7 +32,7 @@ Install Python packages:
 pip install -r requirements.txt
 ```
 
-Set Mapbox, Algolia, Sentry, and AWS environment variables:
+Set environment variables:
 
 ```sh
 export MAPBOX_TOKEN=xxx
@@ -47,38 +51,6 @@ export SENTRY_AUTH_TOKEN=
 python txdps/search.py
 ```
 
-#### First time Heroku setup
-
-- Setup a [Heroku account](https://signup.heroku.com/)
-
-```sh
-# install CLI toolset
-HOMEBREW_NO_AUTO_UPDATE=1 brew tap heroku/brew
-HOMEBREW_NO_AUTO_UPDATE=1 brew install heroku
-# login to account
-heroku login
-# create Heroku app
-heroku create
-# set config vars
-heroku config:set \
-  MAPBOX_TOKEN=$MAPBOX_TOKEN ALGOLIA_API_KEY=$ALGOLIA_API_KEY ALGOLIA_APP_ID=$ALGOLIA_APP_ID \
-  S3_LOCATION=$S3_LOCATION AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
-  SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN
-```
-
-#### First time CircleCI setup
-
-Set the following env vars:
-
-```
-SENTRY_DSN
-SENTRY_ORG
-SENTRY_PROJECT
-# generate w/ `heroku authorizations:create`
-HEROKU_API_KEY
-HEROKU_APP_NAME
-```
-
 ### Run
 
 ```sh
@@ -86,6 +58,14 @@ FLASK_APP=txdps/app flask run
 ```
 
 Then open localhost:5000
+
+### Style
+
+```sh
+pre-commit run -a
+```
+
+You break it, you fix it :)
 
 [algolia]: https://www.algolia.com/
 [mapbox]: https://www.mapbox.com/
