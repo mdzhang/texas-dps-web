@@ -35,7 +35,7 @@ $ ./bin/txdps notify \
   --zip-code 78741 --email-address jujube@juju.me --phone-number 111111111
 ```
 
-### Locally, if app already exists
+### Local
 
 - set `HEROKU_APP` locally
 - add Heroku remote:
@@ -51,6 +51,10 @@ git checkout master
 git push heroku master
 ```
 
+## Sentry
+
+Create an account and project. Note your org name and project slug. Note that `SENTRY_PROJECT` is the project _slug_, not the ID. So is `SENTRY_ORG`. You can create an auth token [here](https://sentry.io/settings/account/api/auth-tokens/). Finally, setup a GitHub integration at `https://sentry.io/settings/$SENTRY_ORG/integrations/github` to unbreak Circle Sentry releases
+
 ## CircleCI
 
 See [`.circleci/config.yml`](./.circleci/config.yml).
@@ -59,4 +63,4 @@ You'll need to setup a new project and integrate it with a GitHub repo.
 
 To let CircleCI trigger Heroku deploys, set the `HEROKU_APP_NAME` and `HEROKU_API_KEY` environment variables. You can generate an API key with `heroku authorizations:create`
 
-To let CircleCI report Sentry releases, set the `SENTRY_ORG`, `SENTRY_PROJECT`, and `SENTRY_AUTH_TOKEN` environment variables. Note that `SENTRY_PROJECT` is the project _slug_, not the ID. So is `SENTRY_ORG`. You can create an auth token [here](https://sentry.io/settings/account/api/auth-tokens/)
+To let CircleCI report Sentry releases, set the `SENTRY_ORG`, `SENTRY_PROJECT`, and `SENTRY_AUTH_TOKEN` environment variables.

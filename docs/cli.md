@@ -13,13 +13,13 @@ In addition to those in the main [README](../README.md):
 
 To grab all locations with their next available date and distance from zip code `78741` and write them to `locations.csv`, but only print the top `10` locations within `50` miles:
 
-```
+```sh
 $ bin/txdps pull --cache-file locations.csv --zip-code 78741 -n 10 --max-dist 50
 ```
 
 Once you figure out the cities you want to limit on, to text `1111111111` and email `jujube@juju.me` on any slot for Driver's License services between `2020-07-02` and `2020-09-02` that pops up in a DPS location in `Austin` or `Pflugerville` within `15` miles of zip code `78741`:
 
-```
+```sh
 $ bin/txdps notify \
   --cities Austin Pflugerville --max-dist 15 \
   --min-date 2020-07-02 --max-date 2020-09-02 \
