@@ -12,7 +12,6 @@ from txdps.distance import update_distances
 BASE_API = "https://publicapi.txdpsscheduler.com/api"
 HTTP_HEADERS = {"Origin": "https://public.txdpsscheduler.com"}
 DEFAULT_SERVICE_ID = 71
-DEFAULT_SERVICE_NAME = "Apply for first time Texas DL/Permit"
 
 
 def format_phone(num: int):

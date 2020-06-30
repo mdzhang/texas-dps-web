@@ -8,17 +8,6 @@ from algoliasearch.search_client import SearchClient
 ALGOLIA_APP_ID = os.getenv("ALGOLIA_APP_ID")
 ALGOLIA_API_KEY = os.getenv("ALGOLIA_API_KEY")
 
-FILTER_OPERATORS = [
-    ["ge ", ">="],
-    ["le ", "<="],
-    ["lt ", "<"],
-    ["gt ", ">"],
-    ["ne ", "!="],
-    ["eq ", "="],
-    ["contains "],
-    ["datestartswith "],
-]
-
 
 def get_index():
     """Authenticate with Algolia and get index object."""
