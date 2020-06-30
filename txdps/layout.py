@@ -19,8 +19,8 @@ import pandas as pd
 import plotly.express as px
 from dash.dependencies import Input, Output, State
 
-from distance import is_valid_zip, update_distances
-from search import filter_df
+from txdps.distance import is_valid_zip, update_distances
+from txdps.search import filter_df
 
 px.set_mapbox_access_token(os.getenv("MAPBOX_TOKEN"))
 

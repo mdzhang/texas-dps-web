@@ -1,5 +1,6 @@
 aiohttp>=2.0,<4.0
 algoliasearch>=2.0,<3.0
+apscheduler
 async_timeout>=2.0,<4.0
 asyncio>=3.4,<4.0
 black
@@ -18,5 +19,8 @@ numpy
 pandas
 pre-commit
 s3fs
+sendgrid
 sentry-sdk[flask]==0.15.1
+tabulate
+twilio
 uszipcode
