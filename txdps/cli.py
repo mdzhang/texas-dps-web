@@ -123,6 +123,11 @@ def get_parser():
             required=True,
             help="S3 URI to read/write fetched appointment data from/to",
         ),
+        "interval": dict(
+            flag="--interval",
+            default=10,
+            help="How often (in mins) to run the scheduled pull",
+        ),
         "n": dict(
             flag="-n",
             default=30,
@@ -154,7 +159,10 @@ def get_parser():
     pull_args = ("use_cache", "cache_file", "cities", "zip_code", "max_dist", "n")
 
     cmd_args = {
-        "schedule": {"help": "Like pull, but run on a schedule", "args": pull_args},
+        "schedule": {
+            "help": "Like pull, but run on a schedule",
+            "args": set(pull_args) + {"interval"},
+        },
         "cancel": {"help": "Cancel a DPS appointment booking", "args": ("booking_id",)},
         "hold": {"help": "Hold a DPS appointment slot", "args": hold_args},
         "scan_and_autohold": {

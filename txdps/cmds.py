@@ -253,11 +253,11 @@ Appointment booking id is {bid}; use this to cancel.
     report(msg)
 
 
-def schedule(**kwargs):
-    """Start a long running process to re-run the data pull every 15 min."""
+def schedule(interval: int, **kwargs):
+    """Start a long running process to re-run the data pull every <interval> min."""
     sched = BlockingScheduler()
     pull_bound = functools.partial(pull, **kwargs)
-    sched.scheduled_job("interval", minutes=15)(pull_bound)
+    sched.scheduled_job("interval", minutes=interval)(pull_bound)
     sched.start()
 
 
