@@ -12,6 +12,5 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=required,
-    scripts=["bin/txdps"],
     entry_points={"console_scripts": ["txdps=txdps.cli:main"]},
 )

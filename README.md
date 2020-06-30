@@ -27,7 +27,7 @@ Uses [Plotly Dash][dash] and [Algolia][algolia] for improved search. Provides [C
 Install Python packages:
 
 ```sh
-pip install -r requirements.txt
+$ python setup.py install
 ```
 
 Set environment variables:
@@ -46,21 +46,24 @@ export SENTRY_AUTH_TOKEN=
 #### First time search index setup
 
 ```sh
-python txdps/search.py
+# pull data
+$ ./bin/txdps pull --cache-file locations.csv
+# upload to index
+$ ./bin/txdps create_index --uri locations.csv
 ```
 
 ### Run
 
 ```sh
-FLASK_APP=txdps/app flask run
+./bin/txdps run_web
 ```
 
-Then open localhost:5000
+Then open localhost:8050
 
 ### Style
 
 ```sh
-pre-commit run -a
+$ pre-commit run -a
 ```
 
 You break it, you fix it :)
