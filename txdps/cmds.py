@@ -2,6 +2,7 @@
 import asyncio
 import functools
 import logging
+import sys
 import typing as T
 from datetime import datetime
 
@@ -257,8 +258,12 @@ def schedule(interval: int, **kwargs):
     """Start a long running process to re-run the data pull every <interval> min."""
     sched = BlockingScheduler()
     fn = functools.partial(pull_and_upload, **kwargs)
-    sched.scheduled_job("interval", minutes=interval)(fn)
-    sched.start()
+    sched.add_job(fn, "interval", minutes=interval)
+
+    try:
+        sched.start()
+    except KeyboardInterrupt:
+        sys.exit(0)
 
 
 __all__ = [
