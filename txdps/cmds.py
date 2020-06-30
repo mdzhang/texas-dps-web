@@ -14,7 +14,6 @@ from txdps.api import get_all_appts_info, get_all_cities_info, get_site_info
 from txdps.api import hold as _hold
 from txdps.app import run as run_web
 from txdps.search import create_index
-from uszipcode import SearchEngine
 
 
 def _pretty_print(df: pd.DataFrame, n: int):
@@ -29,21 +28,9 @@ def _refresh_df(cities: T.List[str] = None, zip_code: int = None) -> pd.DataFram
     if not cities:
         cities, service_id = asyncio.run(get_site_info())
 
-    # uses sqlite under the covers, which we don't want to be accessing
-    # at the same time from a bunch of async tasks
-    if zip_code is not None:
-        search = SearchEngine(simple_zipcode=True)
-        origin_zip = search.by_zipcode(zip_code)
-        origin_latlong = (origin_zip.lat, origin_zip.lng)
-    else:
-        logging.info("No zip. Skipping distance lookup.")
-        origin_latlong = None
-
     # load most of the data we need here
     all_dfs = asyncio.run(
-        get_all_cities_info(
-            cities=cities, service_id=service_id, origin_latlong=origin_latlong,
-        )
+        get_all_cities_info(cities=cities, service_id=service_id, zip_code=zip_code)
     )
     # since looking up all locations nearest to a specific city can return
     # the same location for 2 different cities, deduplicate on DPS location id

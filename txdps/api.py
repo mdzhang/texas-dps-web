@@ -7,7 +7,7 @@ from datetime import datetime
 
 import aiohttp
 import pandas as pd
-from txdps.distance import haversine_distance
+from txdps.distance import update_distances
 
 BASE_API = "https://publicapi.txdpsscheduler.com/api"
 HTTP_HEADERS = {"Origin": "https://public.txdpsscheduler.com"}
@@ -75,7 +75,7 @@ async def get_site_info() -> T.Tuple[T.List[dict], int]:
 
 
 async def get_city_info(
-    session, city: str, service_id: int, origin_latlong: T.Tuple[float, float] = None
+    session, city: str, service_id: int, zip_code: int = None
 ) -> pd.DataFrame:
     """Get DPS locations with next available date for a service nearest to a specific city.
 
@@ -84,7 +84,7 @@ async def get_city_info(
         nearest this city
     :param service_id: find next available appointment dates for DPS services
         of given ID
-    :param origin_latlong: find distance from DPS location to this point in miles
+    :param zip_code: find distance from DPS location to this zip code in miles
     """
     logging.info(f"Fetching data for city: '{city}'...")
     payload = {
@@ -121,16 +121,8 @@ async def get_city_info(
             "CityName",
         ]
 
-        if origin_latlong:
-            df["Distance"] = df[["Latitude", "Longitude"]].apply(
-                lambda row: round(
-                    haversine_distance(
-                        origin_latlong, (row["Latitude"], row["Longitude"])
-                    ),
-                    2,
-                ),
-                axis=1,
-            )
+        if zip_code:
+            df = update_distances(zip_code)
             cols = cols + ["Distance"]
 
         df = df[cols]
@@ -168,19 +160,14 @@ async def get_appointment_info(session, site_name: str, site_id: int, service_id
 
 
 async def get_all_cities_info(
-    cities: T.List[str],
-    service_id: int = DEFAULT_SERVICE_ID,
-    origin_latlong: T.Tuple[float, float] = None,
+    cities: T.List[str], service_id: int = DEFAULT_SERVICE_ID, zip_code: int = None
 ) -> T.List[pd.DataFrame]:
     """Fetch per-city info concurrently."""
     async with aiohttp.ClientSession() as session:
         return await asyncio.gather(
             *[
                 get_city_info(
-                    session,
-                    city=city,
-                    service_id=service_id,
-                    origin_latlong=origin_latlong,
+                    session, city=city, service_id=service_id, zip_code=zip_code
                 )
                 for city in cities
             ]
