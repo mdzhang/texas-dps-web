@@ -15,6 +15,7 @@ flake8-docstrings
 flake8-eradicate
 flake8-isort
 flake8-pep3101
+gunicorn
 numpy
 pandas
 pre-commit
