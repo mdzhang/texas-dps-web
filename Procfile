@@ -1,1 +1,2 @@
-web: FLASK_APP=txdps/app flask run
+web: ./bin/txdps run_web
+data-refresh: ./bin/txdps pull

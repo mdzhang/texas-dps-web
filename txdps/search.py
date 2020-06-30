@@ -1,7 +1,6 @@
 """Functions for using Algolia for search."""
-import os
-import sys
 import logging
+import os
 
 import pandas as pd
 from algoliasearch.search_client import SearchClient
