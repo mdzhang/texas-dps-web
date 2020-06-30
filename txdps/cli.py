@@ -161,7 +161,7 @@ def get_parser():
     cmd_args = {
         "schedule": {
             "help": "Like pull, but run on a schedule",
-            "args": set(pull_args) + {"interval"},
+            "args": set(pull_args).union({"interval"}),
         },
         "cancel": {"help": "Cancel a DPS appointment booking", "args": ("booking_id",)},
         "hold": {"help": "Hold a DPS appointment slot", "args": hold_args},
