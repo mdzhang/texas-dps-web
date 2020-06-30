@@ -193,7 +193,7 @@ def get_parser():
         # dynamically import command function and register on globals
         cmd_module = importlib.import_module("txdps.cmds")
         cmd_fn = getattr(cmd_module, cmd)
-        globals()[cmd] = cmd_fn
+        globals().update({cmd: cmd_fn})
 
         subparser = subparsers.add_parser(cmd, help=spec["help"])
         for arg in spec["args"]:
@@ -217,6 +217,10 @@ def main():
     # convert argparse Namespace object to dict
     kwargs = vars(args)
     cmd = kwargs.pop("command")
+
+    if cmd is None:
+        parser.print_help()
+        sys.exit(2)
 
     # find function matching argparse subcommand name in module namespace
     # and invoke
