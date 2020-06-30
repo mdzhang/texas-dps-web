@@ -1,3 +1,4 @@
+"""Package entrypoint."""
 from setuptools import setup
 
 with open("requirements.txt") as f:
@@ -11,4 +12,6 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=required,
+    scripts=["bin/txdps"],
+    entry_points={"console_scripts": ["txdps=txdps.cli:main"]},
 )

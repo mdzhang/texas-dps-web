@@ -168,7 +168,9 @@ async def get_appointment_info(session, site_name: str, site_id: int, service_id
 
 
 async def get_all_cities_info(
-    cities: T.List[str], service_id: int = DEFAULT_SERVICE_ID, origin_latlong: T.Tuple[float, float] = None
+    cities: T.List[str],
+    service_id: int = DEFAULT_SERVICE_ID,
+    origin_latlong: T.Tuple[float, float] = None,
 ) -> T.List[pd.DataFrame]:
     """Fetch per-city info concurrently."""
     async with aiohttp.ClientSession() as session:
@@ -209,7 +211,7 @@ async def cancel(booking_id: int):
         return await res.json(content_type="text/plain")
 
 
-async def _hold(
+async def hold(
     slot_id: int,
     first_name: str,
     last_name: str,
