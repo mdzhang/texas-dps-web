@@ -21,15 +21,15 @@ heroku addons:create scheduler:standard
 heroku config:set \
   MAPBOX_TOKEN=$MAPBOX_TOKEN ALGOLIA_API_KEY=$ALGOLIA_API_KEY ALGOLIA_APP_ID=$ALGOLIA_APP_ID \
   S3_LOCATION=$S3_LOCATION AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
-  SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN
+  SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN SENTRY_DSN=$SENTRY_DSN \
   TWILIO_ACCOUNT_SID=$TWILIO_ACCOUNT_SID TWILIO_AUTH_TOKEN=$TWILIO_AUTH_TOKEN TWILIO_PHONE_NUMBER=$TWILIO_PHONE_NUMBER \
-  SENDGRID_API_KEY=$SENDGRID_API_KEY SENTRY_DSN=$SENTRY_DSN
+  SENDGRID_API_KEY=$SENDGRID_API_KEY
 ```
 
 For the scheduled job, pick your interval and add a command like:
 
 ```sh
-$ python txdps.py notify \
+$ ./bin/txdps notify \
   --cities Austin Pflugerville --max-dist 15 \
   --min-date 2020-07-02 --max-date 2020-09-02 \
   --zip-code 78741 --email-address jujube@juju.me --phone-number 111111111

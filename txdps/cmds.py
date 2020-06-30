@@ -256,8 +256,8 @@ Appointment booking id is {bid}; use this to cancel.
 def schedule(interval: int, **kwargs):
     """Start a long running process to re-run the data pull every <interval> min."""
     sched = BlockingScheduler()
-    pull_bound = functools.partial(pull, **kwargs)
-    sched.scheduled_job("interval", minutes=interval)(pull_bound)
+    fn = functools.partial(pull_and_upload, **kwargs)
+    sched.scheduled_job("interval", minutes=interval)(fn)
     sched.start()
 
 
