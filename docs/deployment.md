@@ -48,7 +48,7 @@ heroku git:remote -a $HEROKU_APP
 
 ```sh
 git checkout master
-make deploy
+git push heroku master
 ```
 
 ## CircleCI
