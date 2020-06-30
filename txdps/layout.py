@@ -7,6 +7,7 @@ TODOs:
 """
 import os
 import typing as T
+from datetime import datetime
 from urllib.parse import urlparse
 
 import boto3
@@ -33,12 +34,17 @@ def get_slider_marks():
 
 
 def get_data_last_updated():
-    s3 = boto3.client("s3")
     parts = urlparse(S3_URI)
-    bucket = parts.netloc
-    key = parts.path[1:]
-    metadata = s3.head_object(Bucket=bucket, Key=key)
-    return metadata["LastModified"]
+    if parts.scheme in ("", "file"):
+        return datetime.fromtimestamp(os.stat(parts.path).st_mtime)
+    elif parts.scheme == "s3":
+        s3 = boto3.client("s3")
+        bucket = parts.netloc
+        key = parts.path[1:]
+        metadata = s3.head_object(Bucket=bucket, Key=key)
+        return metadata["LastModified"]
+    else:
+        raise ValueError(f"Unrecognized uri: {S3_URI}")
 
 
 def load_original_df():
