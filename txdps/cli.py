@@ -127,6 +127,7 @@ def get_parser():
             flag="--interval",
             default=10,
             help="How often (in mins) to run the scheduled pull",
+            type=int,
         ),
         "n": dict(
             flag="-n",
