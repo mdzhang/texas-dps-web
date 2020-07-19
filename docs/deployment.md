@@ -1,7 +1,5 @@
 # Deployment
 
-## Setup
-
 ## Heroku
 
 - Setup a [Heroku account](https://signup.heroku.com/)
@@ -14,16 +12,18 @@ HOMEBREW_NO_AUTO_UPDATE=1 brew install heroku
 heroku login
 # create Heroku app
 heroku create
-# add the scheduler addon to the app
+# add the scheduler add-on to the app
 heroku addons:create scheduler:standard
 
 # set config vars
 heroku config:set \
-  MAPBOX_TOKEN=$MAPBOX_TOKEN ALGOLIA_API_KEY=$ALGOLIA_API_KEY ALGOLIA_APP_ID=$ALGOLIA_APP_ID \
+  ALGOLIA_API_KEY=$ALGOLIA_API_KEY ALGOLIA_APP_ID=$ALGOLIA_APP_ID \
   S3_LOCATION=$S3_LOCATION AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
-  SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN SENTRY_DSN=$SENTRY_DSN \
+  MAPBOX_TOKEN=$MAPBOX_TOKEN  \
+  SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN SENTRY_DSN=$SENTRY_DSN SENTRY_ORG=$SENTRY_ORG SENTRY_PROJECT=$SENTRY_PROJECT \
   TWILIO_ACCOUNT_SID=$TWILIO_ACCOUNT_SID TWILIO_AUTH_TOKEN=$TWILIO_AUTH_TOKEN TWILIO_PHONE_NUMBER=$TWILIO_PHONE_NUMBER \
-  SENDGRID_API_KEY=$SENDGRID_API_KEY
+  SENDGRID_API_KEY=$SENDGRID_API_KEY \
+  REFRESH_INTERVAL=10
 ```
 
 For the scheduled job, pick your interval and add a command like:
@@ -53,7 +53,7 @@ git push heroku master
 
 ## Sentry
 
-Create an account and project. Note your org name and project slug. Note that `SENTRY_PROJECT` is the project _slug_, not the ID. So is `SENTRY_ORG`. You can create an auth token [here](https://sentry.io/settings/account/api/auth-tokens/). Finally, setup a GitHub integration at `https://sentry.io/settings/$SENTRY_ORG/integrations/github` to unbreak Circle Sentry releases
+Create an account and project. Note your org name and project slug. Note that `SENTRY_PROJECT` is the project _slug_, not the ID. So is `SENTRY_ORG`. You can create an auth token [here](https://sentry.io/settings/account/api/auth-tokens/). Finally, setup a GitHub integration at `https://sentry.io/settings/$SENTRY_ORG/integrations/github` to unbreak Circle Sentry releases.
 
 ## CircleCI
 

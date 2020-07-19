@@ -2,7 +2,7 @@
 
 Web front end to browse DPS appointment data.
 
-Uses [Plotly Dash][dash] and [Algolia][algolia] for improved search. Provides [CLI](./docs/cli.md) for fetching source data.
+Uses [Plotly Dash][dash] and [Algolia][algolia] for improved search. Also provides [CLI](./docs/cli.md) for fetching source data and autobooking appointments.
 
 ## Contributing
 
