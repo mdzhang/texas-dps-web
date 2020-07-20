@@ -2,17 +2,20 @@
 import asyncio
 import functools
 import logging
+import os
 import sys
 import typing as T
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pandas as pd
 from apscheduler.schedulers.blocking import BlockingScheduler
 from tabulate import tabulate
+
 from txdps.alerts import notify_email, notify_phone
 from txdps.api import cancel as _cancel
 from txdps.api import get_all_appts_info, get_all_cities_info, get_site_info
 from txdps.api import hold as _hold
+from txdps.api import list_appointments as _list_appointments
 from txdps.app import run as run_web
 from txdps.search import create_index
 
@@ -182,6 +185,29 @@ def scan_and_autohold(
     **kwargs,
 ):
     """Pull latest DPS appt info, limit using criteria, and notify on match."""
+    if not max_date:
+        appts = asyncio.run(
+            _list_appointments(
+                first_name=first_name,
+                last_name=last_name,
+                dob=dob,
+                last_4_ssn=last_4_ssn,
+            )
+        )
+
+        # HACK
+        if os.getenv("APPLY_PLANO_HACK") is not None:
+            appts = [a for a in appts if a["SiteName"] != "Plano"]
+
+        if len(appts):
+            # e.g. 2020-12-22T15:50:00
+            max_date = datetime.strptime(
+                sorted((a["BookingDateTime"] for a in appts))[0], "%Y-%m-%dT%H:%M:%S"
+            )
+            logging.info(f"Using max date {max_date.isoformat()}")
+        else:
+            max_date = datetime.date(datetime.now()) + timedelta(months=1)
+
     df = _find_matching_slots(
         cities=cities,
         zip_code=zip_code,
@@ -221,7 +247,7 @@ def scan_and_autohold(
 
 def cancel(booking_id: int):
     """Cancel a DPS appointment booking."""
-    res = asyncio.run(_cancel())
+    res = asyncio.run(_cancel(booking_id))
     logging.info(f"Booking {booking_id} cancelled. {res}")
 
 

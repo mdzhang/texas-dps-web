@@ -3,7 +3,7 @@ import argparse
 import importlib
 import re
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from txdps.config import setup
 
@@ -105,7 +105,6 @@ def get_parser():
         "max_date": dict(
             flag="--max-date",
             type=parse_date,
-            default=today + timedelta(days=14),
             help="Don't notify if only slots are after this date",
         ),
         "use_cache": dict(

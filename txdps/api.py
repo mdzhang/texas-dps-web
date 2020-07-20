@@ -7,6 +7,7 @@ from datetime import datetime
 
 import aiohttp
 import pandas as pd
+
 from txdps.distance import update_distances
 
 BASE_API = "https://publicapi.txdpsscheduler.com/api"
@@ -182,12 +183,34 @@ async def get_all_appts_info(
 
 
 async def cancel(booking_id: int):
-    """Cancel an existing booking."""
+    """Cancel an existing booking.
+
+    TODO: currently broken due to 400
+    """
     async with aiohttp.ClientSession() as session:
         res = await session.post(
             f"{BASE_API}/CancelBooking",
             json={"BookingId": booking_id},
             headers=HTTP_HEADERS,
+        )
+        print(res)
+        return await res.json(content_type="text/plain")
+
+
+async def list_appointments(
+    first_name: str, last_name: str, dob: datetime.date, last_4_ssn: int, **kwargs,
+):
+    """List existing booked appointments."""
+    payload = {
+        "FirstName": first_name,
+        "LastName": last_name,
+        "DateOfBirth": dob.strftime("%m/%d/%Y"),
+        "Last4Ssn": last_4_ssn,
+    }
+
+    async with aiohttp.ClientSession() as session:
+        res = await session.post(
+            f"{BASE_API}/Booking", json=payload, headers=HTTP_HEADERS
         )
         return await res.json(content_type="text/plain")
 
@@ -232,23 +255,20 @@ async def hold(
     }
 
     async with aiohttp.ClientSession() as session:
-        # hold
+        # reserve the slot
         res = await session.post(
             f"{BASE_API}/HoldSlot", json=hold_payload, headers=HTTP_HEADERS
         )
         await res.json(content_type="text/plain")
-
-        # confirm
-        res = await session.post(
-            f"{BASE_API}/Booking", json=common, headers=HTTP_HEADERS
-        )
-        book_res = await res.json(content_type="text/plain")
-        logging.debug(f"Booked appointment. {book_res}")
+        logging.debug("Booked appointment.")
 
         # if you already had an appointment for the same service, you need
-        # to cancel the old to book the new
+        # to cancel the old one
+        appts = await list_appointments(
+            first_name=first_name, last_name=last_name, dob=dob, last_4_ssn=last_4_ssn,
+        )
         collision = next(
-            (b for b in book_res if b["ServiceTypeId"] == DEFAULT_SERVICE_ID), None
+            (b for b in appts if b["ServiceTypeId"] == DEFAULT_SERVICE_ID), None
         )
         if collision:
             endpoint = "RescheduleBooking"
@@ -256,6 +276,7 @@ async def hold(
             endpoint = "NewBooking"
         logging.info(f"Using endpoint: {endpoint}")
 
+        # confirm appointment
         res = await session.post(
             f"{BASE_API}/{endpoint}", json=book_payload, headers=HTTP_HEADERS
         )
