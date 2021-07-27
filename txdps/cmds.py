@@ -258,12 +258,12 @@ def hold(phone_number: int, email_address: str, **kwargs):
         _hold(phone_number=phone_number, email_address=email_address, **kwargs)
     )
 
-    def report(msg: str):
+    def report(msg: str, subject: str = None):
         if phone_number:
             notify_phone(msg=msg, phone_number=phone_number)
 
         if email_address:
-            notify_email(msg=msg, email_address=email_address)
+            notify_email(msg=msg, email_address=email_address, subject=subject)
 
     if res.get("ErrorMessage") is not None:
         msg = f"Almost! Failed to book appointment.\n\n{res['ErrorMessage']}"
@@ -277,7 +277,7 @@ def hold(phone_number: int, email_address: str, **kwargs):
 Confirmation number is {conf_num}; use this to cancel.
 """
     logging.info(msg)
-    report(msg)
+    report(msg=msg, subject="TxDPS appointment booked")
 
 
 def schedule(interval: int, **kwargs):
