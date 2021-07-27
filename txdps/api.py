@@ -26,7 +26,7 @@ def pull_zip_town(addr: str) -> T.Tuple[int, str]:
     """Pull the zip code and town name from an address.
 
     Usage:
-    >>> addr = '6121 N Lamar, Austin 78752'
+    >>> addr = '6121 N Lamar, Austin, 78752 '
     >>> pull_zip_town(addr)
     (78752, 'Austin')
     >>> addr = '3506 Twin River Blvd, Corpus Christi 78410'
@@ -34,7 +34,8 @@ def pull_zip_town(addr: str) -> T.Tuple[int, str]:
     (78410, 'Corpus Christi')
     """
     try:
-        town, zip_code = addr.rsplit(",", 1)[-1].strip().rsplit(" ", 1)
+        town, zip_code = addr.strip().rsplit(" ", 2)[-2:]
+        town = town.rstrip(",")
         return zip_code, town
     except ValueError as exc:
         logging.critical(f"Failed to parse address: {addr}")
@@ -63,7 +64,7 @@ async def get_site_info() -> T.Tuple[T.List[dict], int]:
     async with aiohttp.ClientSession() as session:
         async with session.get(f"{BASE_API}/SiteData", headers=HTTP_HEADERS) as res:
             res_body = await res.json(content_type="text/plain")
-            return res_body["Cities"]
+            return [c["Name"] for c in res_body["Cities"]]
 
 
 async def get_city_info(
@@ -91,8 +92,20 @@ async def get_city_info(
     async with session.post(
         f"{BASE_API}/AvailableLocation", json=payload, headers=HTTP_HEADERS
     ) as res:
-        res_body = await res.json(content_type="text/plain")
-        logging.info(f"Finished fetching data for city: '{city}'.")
+        # NB: setting content_type=None removes the Content-Type header check,
+        #     allowing us to extract error details from the response body below
+        res_body = await res.json(content_type=None)
+
+        if not res.ok:
+            err = {
+                "msg": f"Failed to fetch data for city: '{city}'.",
+                "error_detail": res_body,
+            }
+            err_str = json.dumps(err)
+            logging.exception(err_str)
+            raise Exception(err_str)
+
+        logging.info(f"Fetched data for city: '{city}'.")
 
         df = pd.DataFrame(res_body)
 

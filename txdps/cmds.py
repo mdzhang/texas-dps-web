@@ -22,6 +22,7 @@ from txdps.search import create_index
 
 def _pretty_print(df: pd.DataFrame, n: int):
     """Pretty print the head of the data frame to stdout."""
+    n = int(n)
     s = tabulate(df.head(n), headers="keys", tablefmt="psql")
     print(s)
     return s
