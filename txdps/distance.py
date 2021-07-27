@@ -52,7 +52,8 @@ def update_distances(df: pd.DataFrame, zip_code: int):
 
     df["Distance"] = df[["Latitude", "Longitude"]].apply(
         lambda row: round(
-            haversine_distance(origin_latlong, (row["Latitude"], row["Longitude"])), 2,
+            haversine_distance(origin_latlong, (row["Latitude"], row["Longitude"])),
+            2,
         ),
         axis=1,
     )

@@ -142,7 +142,9 @@ def get_filter_and_search_row():
                 dbc.FormGroup(
                     [
                         dbc.Input(
-                            id="zip", type="number", placeholder="Enter your zip code",
+                            id="zip",
+                            type="number",
+                            placeholder="Enter your zip code",
                         ),
                         dbc.FormText(
                             "Enter your zip code to estimate distance to DPS locations"
@@ -306,7 +308,8 @@ def register_callbacks(app):
         return df.to_dict("records")
 
     @app.callback(
-        Output("distance-range", "marks"), [Input("distance-range", "value")],
+        Output("distance-range", "marks"),
+        [Input("distance-range", "value")],
     )
     def update_slider_markers(distance_range: T.List[int]):
         """Update markers on distance range slider to include selected values."""
