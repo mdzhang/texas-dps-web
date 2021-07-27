@@ -18,7 +18,7 @@ repos:
       - id: detect-aws-credentials
         args: [--allow-missing-credentials]
   - repo: https://github.com/ambv/black
-    rev: 19.10b0
+    rev: 21.7b0
     hooks:
       - id: black
         require_serial: true
