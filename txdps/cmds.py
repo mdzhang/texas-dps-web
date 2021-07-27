@@ -245,10 +245,10 @@ def scan_and_autohold(
     )
 
 
-def cancel(booking_id: int):
+def cancel(conf_num: int, dob: str, first_name: str, last_4_ssn: int, last_name: str):
     """Cancel a DPS appointment booking."""
-    res = asyncio.run(_cancel(booking_id))
-    logging.info(f"Booking {booking_id} cancelled. {res}")
+    res = asyncio.run(_cancel(conf_num, dob, first_name, last_4_ssn, last_name))
+    logging.info(f"Appointment {conf_num} cancelled. {res}")
 
 
 def hold(phone_number: int, email_address: str, **kwargs):
@@ -271,10 +271,9 @@ def hold(phone_number: int, email_address: str, **kwargs):
         raise ValueError(msg)
 
     conf_num = res["Booking"]["ConfirmationNumber"]
-    bid = res["Booking"]["BookingId"]
     url = f"https://public.txdpsscheduler.com?b={conf_num}"
     msg = f"""DPS appointment booked! See details at: {url}
-Appointment booking id is {bid}; use this to cancel.
+Confirmation number is {conf_num}; use this to cancel.
 """
     logging.info(msg)
     report(msg)

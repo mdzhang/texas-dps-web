@@ -1,5 +1,6 @@
 """Helpers that pull from DPS API."""
 import asyncio
+import json
 import logging
 import typing as T
 import urllib
@@ -182,23 +183,40 @@ async def get_all_appts_info(
         )
 
 
-async def cancel(booking_id: int):
-    """Cancel an existing booking.
-
-    TODO: currently broken due to 400
-    """
+async def cancel(
+    conf_num: int, dob: str, first_name: str, last_4_ssn: int, last_name: str
+):
+    """Cancel an existing appointment."""
     async with aiohttp.ClientSession() as session:
         res = await session.post(
             f"{BASE_API}/CancelBooking",
-            json={"BookingId": booking_id},
+            json={
+                "ConfirmationNumber": conf_num,
+                "DateOfBirth": dob.strftime("%m/%d/%Y"),
+                "FirstName": first_name,
+                "LastFourDigitsSsn": last_4_ssn,
+                "LastName": last_name,
+            },
             headers=HTTP_HEADERS,
         )
-        print(res)
-        return await res.json(content_type="text/plain")
+        res_body = await res.text()
+        if not res.ok:
+            err = {
+                "msg": "Failed to cancel appointment",
+                "error_detail": res_body,
+            }
+            err_str = json.dumps(err)
+            logging.exception(err_str)
+            raise Exception(err_str)
+        return json.loads(res_body)
 
 
 async def list_appointments(
-    first_name: str, last_name: str, dob: datetime.date, last_4_ssn: int, **kwargs,
+    first_name: str,
+    last_name: str,
+    dob: datetime.date,
+    last_4_ssn: int,
+    **kwargs,
 ):
     """List existing booked appointments."""
     payload = {
@@ -265,7 +283,10 @@ async def hold(
         # if you already had an appointment for the same service, you need
         # to cancel the old one
         appts = await list_appointments(
-            first_name=first_name, last_name=last_name, dob=dob, last_4_ssn=last_4_ssn,
+            first_name=first_name,
+            last_name=last_name,
+            dob=dob,
+            last_4_ssn=last_4_ssn,
         )
         collision = next(
             (b for b in appts if b["ServiceTypeId"] == DEFAULT_SERVICE_ID), None

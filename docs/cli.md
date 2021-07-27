@@ -11,6 +11,8 @@ In addition to those in the main [README](../README.md):
 
 ## Usage
 
+Follow setup in main [README](../README.md).
+
 Set additional required environment variables:
 
 ```sh
@@ -40,10 +42,12 @@ $ bin/txdps scan_and_autohold \
   --first-name Juju --last-name Be --dob 1990-01-01 --last-4-ssn 1111 --card-number 999999999
 ```
 
-If successful, you'll get an email and text that includes the booking ID.
+If successful, you'll get an email and text that includes the confirmation number.
 
 If you decide to cancel you can:
 
 ```sh
-bin/txdps cancel --booking-id 555555
+bin/txdps cancel --conf-num 555555
+  --first-name Juju --last-name Be --dob 1990-01-01 \
+  --last-4-ssn 1111 --card-number 999999999
 ```

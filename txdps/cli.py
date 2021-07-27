@@ -25,9 +25,9 @@ def get_parser():
     today = datetime.date(datetime.now())
 
     all_args = {
-        "booking_id": dict(
-            flag="--booking-id",
-            help="Appointment booking id unique to location, service, date, and time.",
+        "confirmation_number": dict(
+            flag="--conf-num",
+            help="Unique appointment confirmation number.",
             required=True,
         ),
         "slot_id": dict(
@@ -162,7 +162,16 @@ def get_parser():
             "help": "Like pull_and_upload, but run on a schedule",
             "args": ("uri", "interval"),
         },
-        "cancel": {"help": "Cancel a DPS appointment booking", "args": ("booking_id",)},
+        "cancel": {
+            "help": "Cancel a DPS appointment appointment",
+            "args": (
+                "confirmation_number",
+                "first_name",
+                "last_name",
+                "last_4_ssn",
+                "dob",
+            ),
+        },
         "hold": {"help": "Hold a DPS appointment slot", "args": hold_args},
         "scan_and_autohold": {
             "help": (
